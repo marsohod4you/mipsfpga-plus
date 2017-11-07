@@ -12,8 +12,14 @@ module mfp_uart_receiver
     `ifdef MFP_USE_SLOW_CLOCK_AND_CLOCK_MUX
         parameter  clock_frequency        = 50000000 / 2;
     `else
-        parameter  clock_frequency        = 50000000;
+	 `ifdef MARSOHOD3
+		  //on Marsohod3 board we use HDMI output which means non-usual PLL frequencies like 74MHz and 370MHz
+		  //so neares system clock achievable is 49.333333MHz
+        parameter  clock_frequency        = 49333333;
+    `else
+	     parameter  clock_frequency        = 50000000;
     `endif
+	 `endif
 
     parameter  baud_rate              = 115200;
     parameter  clock_cycles_in_symbol = clock_frequency / baud_rate;
