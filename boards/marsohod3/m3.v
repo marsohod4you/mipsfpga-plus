@@ -7,6 +7,7 @@ module m3
     output  [ 7:0]  LEDR,
 	 input wire  FTDI_RX,
 	 output wire FTDI_TX,
+	 inout wire [7:0]FTD,
 
     `ifdef MFP_USE_SDRAM_MEMORY
         output  [11:0]  DRAM_ADDR,
@@ -144,36 +145,14 @@ module m3
         wire          ADC_R_EOP;
     `endif
 
-    //`define MFP_EJTAG_DEBUGGER
-    `ifdef MFP_EJTAG_DEBUGGER
-        // MIPSfpga EJTAG BusBluster 3 connector pinout
-        // EJTAG     DIRECTION   PIN      CONN      PIN    DIRECTION EJTAG 
-        // =====     ========= ======== ========= ======== ========= ======
-        //  VCC       output   GPIO[12]  15 | 16  GPIO[13]  output    VCC  
-        //  GND       output   GPIO[14]  17 | 18  GPIO[15]  output    GND  
-        //  NC        output   GPIO[16]  19 | 20  GPIO[17]  input    EJ_TCK
-        //  NC        output   GPIO[18]  21 | 22  GPIO[19]  output   EJ_TDO
-        //  EJ_RST    input    GPIO[20]  23 | 24  GPIO[21]  input    EJ_TDI
-        //  EJ_TRST   input    GPIO[22]  25 | 26  GPIO[23]  input    EJ_TMS
-
-        wire EJ_VCC  = 1'b1;
-        wire EJ_GND  = 1'b0;
-        wire EJ_NC   = 1'bz;
-        wire EJ_TCK  = GPIO[17];
-        wire EJ_RST  = GPIO[20];
-        wire EJ_TDI  = GPIO[21];
-        wire EJ_TRST = GPIO[22];
-        wire EJ_TMS  = GPIO[23];
-        wire EJ_DINT = 1'b0;
-        wire EJ_TDO;
-
-        assign GPIO[12] = EJ_VCC;
-        assign GPIO[13] = EJ_VCC;
-        assign GPIO[14] = EJ_GND;
-        assign GPIO[15] = EJ_GND;
-        assign GPIO[16] = EJ_NC;
-        assign GPIO[18] = EJ_NC;
-        assign GPIO[19] = EJ_TDO;
+    `ifdef MFP_USE_MPSSE_DEBUGGER
+		  wire EJ_TCK; assign EJ_TCK = FTD[0];
+        wire EJ_TDI; assign EJ_TDI = FTD[1];
+        wire EJ_TMS; assign EJ_TMS = FTD[3];
+        wire EJ_TDO; assign FTD[2] = EJ_TDO;
+        wire EJ_RST;  assign EJ_RST  = FTD[4];
+        wire EJ_TRST; assign EJ_TRST = 1'b0;
+        wire EJ_DINT; assign EJ_DINT = 1'b0;	
     `endif
 
     `ifdef MFP_DEMO_LIGHT_SENSOR_M3
@@ -242,8 +221,8 @@ module m3
         .IO_7_SegmentHEX  (   IO_7_SegmentHEX ),
 
         `ifdef MFP_USE_DUPLEX_UART_M3
-        .UART_SRX         (   FTDI_RX /* GPIO [33] */ ), 
-        .UART_STX         (   FTDI_TX /* GPIO [35] */ ),
+        .UART_SRX         (   FTDI_RX ), 
+        .UART_STX         (   FTDI_TX ),
         `endif
 
         `ifdef MFP_DEMO_LIGHT_SENSOR_M3
